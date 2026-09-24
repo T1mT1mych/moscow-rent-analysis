@@ -1,0 +1,5 @@
+# Единые окончания строк (LF) на любой ОС — сырые CSV остаются байт-в-байт как на Kaggle
+* text=auto eol=lf
+
+*.png binary
+*.db binary

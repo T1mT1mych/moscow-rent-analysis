@@ -1,0 +1,31 @@
+# Виртуальное окружение
+.venv/
+venv/
+env/
+
+# Python-кэш
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
+
+# IDE / инструменты
+.idea/
+.vscode/
+.claude/
+
+# ОС
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Личные рабочие заметки (план и журнал) — только локально
+progress/
+
+# Сгенерированная БД — пересоздаётся из sql_loading_tables.ipynb, версионировать не нужно
+data/processed/moscow_realty.db
