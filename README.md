@@ -1,5 +1,7 @@
 # Moscow Rent Analysis
 
+[![tests](https://github.com/T1mT1mych/moscow-rent-analysis/actions/workflows/tests.yml/badge.svg)](https://github.com/T1mT1mych/moscow-rent-analysis/actions/workflows/tests.yml)
+
 Анализ рынка недвижимости Москвы (2020–2026): аренда, вторичное жильё и новостройки. Очистка и сегментация данных (премиум-сегмент, Новая Москва), SQL-аналитика окупаемости покупки vs аренды и наценки новостроек над вторичкой.
 
 ## Данные
