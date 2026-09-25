@@ -65,17 +65,20 @@ streamlit run streamlit_app.py
 pip install -r requirements.txt
 ```
 
-Затем открыть и выполнить ноутбуки из `notebooks/` **строго по порядку**:
+Затем выполнить шаги **строго по порядку**:
 
-1. `data_clean_rentals.ipynb`
-2. `data_clean_secondary_market.ipynb`
-3. `data_clean_new_builds.ipynb`
-4. `data_clean_district_prices_monthly.ipynb`
-5. `sql_loading_tables.ipynb` — собирает всё в SQLite-базу и считает итоговые выводы
+1. `notebooks/data_clean_rentals.ipynb`
+2. `notebooks/data_clean_secondary_market.ipynb`
+3. `notebooks/data_clean_new_builds.ipynb`
+4. `notebooks/data_clean_district_prices_monthly.ipynb`
+5. `notebooks/sql_loading_tables.ipynb` — собирает всё в SQLite-базу и считает итоговые выводы
+6. `python -m src.mart` — собирает витрину данных для дашборда (таблицы `mart_*` в базе и CSV в `data/mart/`)
+7. `notebooks/deep_analysis.ipynb` — глубокий анализ; раздел 8.8 читает витрину, поэтому после шага 6
+8. `python -m src.export_figures` — выгружает ключевые графики из выполненного `deep_analysis` в `output/figures/` для README
 
-Каждый из первых четырёх ноутбуков читает свою таблицу из `data/raw/` и сохраняет очищенную версию в `data/processed/`. Пятый — грузит все таблицы в `moscow_realty.db` и создаёт SQL-представления для аналитики. После него `python -m src.mart` пересобирает витрину для дашборда.
+Каждый из первых четырёх ноутбуков читает свою таблицу из `data/raw/` и сохраняет очищенную версию в `data/processed/`. Пятый — грузит все таблицы в `moscow_realty.db` и создаёт SQL-представления для аналитики.
 
-Необязательно, но можно дополнительно запустить `surface_analysis.ipynb` — поверхностная аналитика по уже очищенным данным (распределение по комнатам, цена по возрасту дома и типу здания, влияние ремонта/мебели на аренду, класс новостроек по округам). Зависит только от `data/processed/`, порядок относительно `sql_loading_tables.ipynb` не важен.
+`notebooks/surface_analysis.ipynb` — поверхностная аналитика по уже очищенным данным (распределение по комнатам, цена по возрасту дома и типу здания, влияние ремонта/мебели на аренду, класс новостроек по округам). Зависит только от `data/processed/`, запускается в любой момент после шага 4.
 
 Запустить тесты: `pytest`
 
