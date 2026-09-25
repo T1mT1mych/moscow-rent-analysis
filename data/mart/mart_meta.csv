@@ -1,0 +1,12 @@
+key,value
+built_at,2026-09-25T04:16:29+00:00
+mart_districts_rows,129
+mart_district_month_rows,9804
+mart_segment_medians_rows,44
+source_rows_rentals,20000
+source_rows_secondary_market,50000
+source_rows_new_builds,8000
+payback_q1_Новая Москва,14.7
+payback_q3_Новая Москва,15.2
+payback_q1_Старая Москва,16.4
+payback_q3_Старая Москва,17.9

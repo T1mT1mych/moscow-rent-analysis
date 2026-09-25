@@ -1,5 +1,5 @@
 """
-Витрина данных (data mart) для BI-дашборда — п.9.2 плана
+Витрина данных (data mart) для BI-дашборда
 
 Собирает уже посчитанные метрики (v_payback_period, v_new_build_premium,
 v_official_check, медианы старая/новая Москва) в четыре таблицы `mart_*`
@@ -12,6 +12,10 @@ v_official_check, медианы старая/новая Москва) в чет
 (Хамовники: 371k против 531k, разница 43%). В витрине обе базы расчёта
 разведены по разным колонкам с явными именами: *_no_premium и *_all.
 
+Витрина пишется в две копии: таблицами mart_* в moscow_realty.db и CSV-файлами
+в data/mart/. База в репозиторий не входит, а CSV входят — дашборд читает их,
+поэтому работает сразу после клонирования, без прогона ноутбуков.
+
 Запуск: python -m src.mart
 """
 
@@ -21,7 +25,9 @@ import sqlite3
 
 import pandas as pd
 
-DB_PATH = Path(__file__).resolve().parents[1] / 'data' / 'processed' / 'moscow_realty.db'
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DB_PATH = PROJECT_ROOT / 'data' / 'processed' / 'moscow_realty.db'
+CSV_DIR = PROJECT_ROOT / 'data' / 'mart'
 
 MART_TABLES = [
     'mart_districts',
@@ -189,6 +195,10 @@ def build_district_month(conn):
     подшиваются слева: там, где в районе за месяц не было объявлений,
     n_listings_ours = 0, а our_avg_price = NULL. Дашборд по этой колонке
     решает, можно ли доверять точке ряда.
+
+    Объявления агрегируются здесь, а не берутся из v_official_check: VIEW
+    отфильтровывает Новую Москву, и её 22 района остались бы без наших цен.
+    Формула та же, на районах старой Москвы результат совпадает с VIEW.
     """
     df = pd.read_sql("""
         SELECT d.year_month,
@@ -202,11 +212,19 @@ def build_district_month(conn):
                d.avg_mortgage_rate_pct,
                o.n_listings                   AS n_listings_ours,
                o.our_avg_price                AS our_avg_price_all,
-               o.difference_pct               AS diff_vs_official_pct
+               ROUND((o.avg_price / d.secondary_price_per_sqm - 1) * 100, 1) AS diff_vs_official_pct
           FROM district_prices_monthly d
-          LEFT JOIN v_official_check o
+          LEFT JOIN (
+              SELECT district,
+                     substr(date_posted, 1, 7)  AS ym,
+                     COUNT(*)                   AS n_listings,
+                     AVG(price_per_sqm)         AS avg_price,
+                     ROUND(AVG(price_per_sqm), 0) AS our_avg_price
+                FROM secondary_market
+            GROUP BY district, ym
+          ) o
             ON d.district = o.district
-           AND substr(d.year_month, 1, 7) = substr(o.year_month, 1, 7)
+           AND substr(d.year_month, 1, 7) = o.ym
       ORDER BY d.year_month, d.district
     """, conn)
 
@@ -295,12 +313,15 @@ def build_mart(db_path=DB_PATH):
     }
 
 
-def write_mart(mart, db_path=DB_PATH):
-    """Записывает витрину в ту же БД таблицами mart_*"""
+def write_mart(mart, db_path=DB_PATH, csv_dir=CSV_DIR):
+    """Записывает витрину в БД таблицами mart_* и в CSV-файлы <имя таблицы>.csv"""
+    csv_dir = Path(csv_dir)
+    csv_dir.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(db_path))
     try:
         for name, df in mart.items():
             df.to_sql(name, conn, if_exists='replace', index=False)
+            df.to_csv(csv_dir / f'{name}.csv', index=False, lineterminator='\n')
             print(f'{name:24} {len(df):>6} строк')
         conn.commit()
     finally:
@@ -310,4 +331,4 @@ def write_mart(mart, db_path=DB_PATH):
 if __name__ == '__main__':
     mart = build_mart()
     write_mart(mart)
-    print(f'\nВитрина записана в {DB_PATH}')
+    print(f'\nВитрина записана в {DB_PATH} и {CSV_DIR}')

@@ -147,6 +147,22 @@ def test_matches_source_views(db):
     assert (merged_nb['premium_pct'] == merged_nb['newbuild_premium_pct']).all()
 
 
+def test_district_month_listings_cover_new_moscow_and_match_view(db):
+    """Наши объявления по месяцам есть и у Новой Москвы, а у старой совпадают с v_official_check"""
+    monthly = build_mart(db)['mart_district_month']
+    assert monthly.loc[monthly['district'] == 'Troitsk', 'n_listings_ours'].sum() > 0
+
+    conn = sqlite3.connect(str(db))
+    view = pd.read_sql('SELECT year_month, district, n_listings, our_avg_price, difference_pct '
+                       'FROM v_official_check', conn)
+    conn.close()
+    merged = view.merge(monthly, on=['year_month', 'district'])
+    assert len(merged) == len(view) > 0
+    assert (merged['n_listings'] == merged['n_listings_ours']).all()
+    assert (merged['our_avg_price'] == merged['our_avg_price_all']).all()
+    assert (merged['difference_pct'] == merged['diff_vs_official_pct']).all()
+
+
 def test_district_month_covers_official_grain(db):
     mart = build_mart(db)
     assert len(mart['mart_district_month']) == 9  # 3 района × 3 месяца
