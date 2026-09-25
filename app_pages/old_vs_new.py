@@ -1,7 +1,7 @@
 import streamlit as st
 
 from dashboard.charts import distribution_by_part, segment_by_year
-from dashboard.data import NEW, OLD, PARTS, fmt_num
+from dashboard.data import NEW, OLD, PARTS, fmt_num, styled_table
 from dashboard.loaders import load_districts, load_segment_medians
 
 districts = load_districts()
@@ -65,12 +65,16 @@ st.markdown(f'''
 with st.expander('Таблица по районам'):
     table = districts[['name', 'okrug_ru', 'moscow_part', 'payback_years',
                        'newbuild_premium_pct', 'newbuild_premium_rub']]
+    table = table.sort_values(['moscow_part', 'payback_years'])
     st.dataframe(
-        table.sort_values(['moscow_part', 'payback_years']), hide_index=True,
+        styled_table(table, {'payback_years': 1, 'newbuild_premium_pct': 1, 'newbuild_premium_rub': 0},
+                     na_text='нет новостроек'),
+        hide_index=True,
         column_config={
             'name': 'Район', 'okrug_ru': 'Округ', 'moscow_part': 'Часть города',
-            'payback_years': st.column_config.NumberColumn('Окупаемость, лет', format='%.1f'),
-            'newbuild_premium_pct': st.column_config.NumberColumn('Наценка, %', format='%.1f'),
-            'newbuild_premium_rub': st.column_config.NumberColumn('Наценка, ₽/м²', format='localized'),
+            'payback_years': 'Окупаемость, лет', 'newbuild_premium_pct': 'Наценка, %',
+            'newbuild_premium_rub': 'Наценка, ₽/м²',
         },
     )
+    st.caption('«Нет новостроек» — в районе нет ни одного объявления о продаже новостройки, '
+               'поэтому наценку над вторичкой считать не из чего.')

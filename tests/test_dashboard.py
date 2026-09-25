@@ -13,7 +13,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from dashboard.data import (
-    MART_DIR, NEW, OLD, fmt_num, plural_ru, meta_dict, part_monthly_median,
+    MART_DIR, NEW, OLD, fmt_num, plural_ru, styled_table, meta_dict, part_monthly_median,
     part_summary, prepare_district_month, prepare_districts, to_index,
 )
 
@@ -30,6 +30,14 @@ def districts():
 def test_fmt_num_uses_russian_separators():
     assert fmt_num(1234567.891, 1) == '1 234 567,9'
     assert fmt_num(float('nan')) == '—'
+
+
+def test_styled_table_explains_missing_values():
+    df = pd.DataFrame({'premium': [12.345, None], 'rub': [123456.0, None]})
+    html = styled_table(df, {'premium': 1, 'rub': 0}, na_text='нет новостроек').to_html()
+    assert '12,3' in html and '123 456' in html
+    assert html.count('нет новостроек') == 2
+    assert 'None' not in html and 'nan' not in html
 
 
 def test_plural_ru():

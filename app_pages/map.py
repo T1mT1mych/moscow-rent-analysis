@@ -1,7 +1,7 @@
 import streamlit as st
 
 from dashboard.charts import district_map, district_ranking
-from dashboard.data import METRICS, PARTS, plural_ru
+from dashboard.data import METRICS, PARTS, plural_ru, styled_table
 from dashboard.loaders import load_districts
 
 districts = load_districts()
@@ -47,9 +47,11 @@ if available:
 with st.expander('Таблица по всем выбранным районам'):
     table = view[['name', 'okrug_ru', 'moscow_part', metric]].sort_values(metric, ascending=False)
     st.dataframe(
-        table, hide_index=True,
+        styled_table(table, {metric: 1 if metric in ('payback_years', 'newbuild_premium_pct', 'to_center_km') else 0},
+                     na_text='нет новостроек'),
+        hide_index=True,
         column_config={
             'name': 'Район', 'okrug_ru': 'Округ', 'moscow_part': 'Часть города',
-            metric: st.column_config.NumberColumn(f'{label}, {unit}', format='localized'),
+            metric: f'{label}, {unit}',
         },
     )

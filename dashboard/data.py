@@ -75,6 +75,20 @@ def fmt_num(value, digits=0):
     return f'{value:,.{digits}f}'.replace(',', ' ').replace('.', ',')
 
 
+def styled_table(df, digits, na_text):
+    """
+    Таблица для st.dataframe: числа по-русски, пустые ячейки — понятным текстом
+
+    Пустое значение в витрине означает «данных нет» (например, в районе нет
+    ни одного объявления новостройки), а не ошибку — поэтому вместо None
+    показываем объяснение. Сортировка в таблице идёт по исходным числам.
+    """
+    return df.style.format(
+        {col: (lambda v, d=d: fmt_num(v, d)) for col, d in digits.items()},
+        na_rep=na_text,
+    )
+
+
 def plural_ru(n, one, few, many):
     """Согласование существительного с числом: 1 район, 22 района, 107 районов"""
     if n % 10 == 1 and n % 100 != 11:
