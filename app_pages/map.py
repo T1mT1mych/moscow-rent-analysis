@@ -44,11 +44,11 @@ if available:
     st.plotly_chart(district_ranking(view, metric, top_n, highest=direction != 'Самые низкие'))
 
 with st.expander('Таблица по всем выбранным районам'):
-    table = view[['district', 'okrug_ru', 'moscow_part', metric]].sort_values(metric, ascending=False)
+    table = view[['name', 'okrug_ru', 'moscow_part', metric]].sort_values(metric, ascending=False)
     st.dataframe(
         table, hide_index=True,
         column_config={
-            'district': 'Район', 'okrug_ru': 'Округ', 'moscow_part': 'Часть города',
+            'name': 'Район', 'okrug_ru': 'Округ', 'moscow_part': 'Часть города',
             metric: st.column_config.NumberColumn(f'{label}, {unit}', format='localized'),
         },
     )

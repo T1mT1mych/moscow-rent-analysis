@@ -9,6 +9,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from dashboard.district_names import DISTRICT_NAMES_RU
+
 MART_DIR = Path(__file__).resolve().parents[1] / 'data' / 'mart'
 
 OLD, NEW = 'Старая Москва', 'Новая Москва'
@@ -87,7 +89,8 @@ def prepare_districts(df):
     df = df.copy()
     df['okrug_ru'] = df['okrug'].map(okrug_label)
     df['newbuild_premium_rub'] = df['avg_newbuild_sqm_no_premium'] - df['avg_price_sqm_no_premium']
-    df['label'] = df['district'] + ' (' + df['okrug_ru'] + ')'
+    df['name'] = df['district'].map(DISTRICT_NAMES_RU).fillna(df['district'])
+    df['label'] = df['name'] + ' (' + df['okrug_ru'] + ')'
     return df
 
 

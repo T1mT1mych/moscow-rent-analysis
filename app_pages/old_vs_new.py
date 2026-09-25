@@ -63,12 +63,12 @@ st.markdown(f'''
 ''')
 
 with st.expander('Таблица по районам'):
-    table = districts[['district', 'okrug_ru', 'moscow_part', 'payback_years',
+    table = districts[['name', 'okrug_ru', 'moscow_part', 'payback_years',
                        'newbuild_premium_pct', 'newbuild_premium_rub']]
     st.dataframe(
         table.sort_values(['moscow_part', 'payback_years']), hide_index=True,
         column_config={
-            'district': 'Район', 'okrug_ru': 'Округ', 'moscow_part': 'Часть города',
+            'name': 'Район', 'okrug_ru': 'Округ', 'moscow_part': 'Часть города',
             'payback_years': st.column_config.NumberColumn('Окупаемость, лет', format='%.1f'),
             'newbuild_premium_pct': st.column_config.NumberColumn('Наценка, %', format='%.1f'),
             'newbuild_premium_rub': st.column_config.NumberColumn('Наценка, ₽/м²', format='localized'),

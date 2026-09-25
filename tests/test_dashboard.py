@@ -41,6 +41,11 @@ def test_every_okrug_has_russian_name(districts):
     assert not districts['okrug_ru'].str.match(r'^[A-Za-z]').any()
 
 
+def test_every_district_has_russian_name(districts):
+    assert districts['name'].str.fullmatch(r'[А-Яа-яЁё \-]+').all()
+    assert districts['name'].is_unique
+
+
 def test_part_summary_matches_mart(districts):
     medians = pd.read_csv(MART_DIR / 'mart_segment_medians.csv', dtype={'period': str})
     summary = part_summary(districts, medians)
@@ -93,7 +98,7 @@ def test_map_filter_to_empty_shows_warning():
 
 def test_district_without_new_builds():
     at = open_page('app_pages/district.py')
-    no_new_builds = next(o for o in at.selectbox(key='district').options if o.startswith('Aeroport'))
+    no_new_builds = next(o for o in at.selectbox(key='district').options if o.startswith('Аэропорт'))
     at.selectbox(key='district').select(no_new_builds).run()
     assert not at.exception
     assert any(m.value == '—' for m in at.metric)

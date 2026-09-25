@@ -11,13 +11,13 @@ meta = load_meta()
 st.title('Карточка района')
 
 labels = sorted(districts['label'])
-default = next((i for i, l in enumerate(labels) if l.startswith('Khamovniki')), 0)
+default = next((i for i, l in enumerate(labels) if l.startswith('Хамовники')), 0)
 chosen = st.selectbox('Район', labels, index=default, key='district')
 row = districts[districts['label'] == chosen].iloc[0]
 part = row['moscow_part']
 peers = districts[districts['moscow_part'] == part]
 
-st.markdown(f'**{row["district"]}** · {row["okrug_ru"]} · {part} · '
+st.markdown(f'**{row["name"]}** · {row["okrug_ru"]} · {part} · '
             f'в среднем {fmt_num(row["to_center_km"], 1)} км до центра')
 
 
@@ -65,7 +65,7 @@ seg_label, column, unit = SEGMENTS[segment]
 
 series = monthly[monthly['district'] == row['district']].set_index('month')[column]
 part_median = monthly[monthly['moscow_part'] == part].groupby('month')[column].median()
-st.plotly_chart(district_vs_part(series, part_median, row['district'], part, f'{seg_label}, {unit}'))
+st.plotly_chart(district_vs_part(series, part_median, row['name'], part, f'{seg_label}, {unit}'))
 st.caption('Серая линия — медиана по всем районам той же части города. ' + OFFICIAL_SERIES_NOTE)
 
 with st.expander('Таблица по годам'):

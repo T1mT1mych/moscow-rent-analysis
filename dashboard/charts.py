@@ -59,14 +59,14 @@ def district_map(districts, metric):
                           colorbar=dict(title=_metric_title(metric), thickness=12, tickformat=',~f'))
         fig.add_trace(go.Scattermap(
             lat=subset['lat'], lon=subset['lon'], mode='markers', marker=marker,
-            text=subset['district'], customdata=customdata,
+            text=subset['name'], customdata=customdata,
             name='нет данных' if is_empty else METRICS[metric][0],
             hovertemplate='<b>%{text}</b> · %{customdata[0]}<br>%{customdata[1]}<br>'
                           + METRICS[metric][0] + ': %{customdata[2]} ' + METRICS[metric][1]
                           + '<extra></extra>',
         ))
 
-    fig.update_layout(map=dict(style='carto-positron', center=MOSCOW_CENTER, zoom=7.9))
+    fig.update_layout(map=dict(style='open-street-map', center=MOSCOW_CENTER, zoom=7.9))
     return _layout(fig, height=560, legend=not has_value.all())
 
 
@@ -166,7 +166,7 @@ def distribution_by_part(districts, metric):
             y=side[metric], name=part, boxpoints='all', jitter=0.45, pointpos=0,
             marker=dict(color=PART_COLORS[part], size=8, opacity=0.75),
             line=dict(color=PART_COLORS[part], width=1.5), fillcolor='rgba(0,0,0,0)',
-            text=side['district'], customdata=side[metric].map(lambda v: fmt_num(v, digits)),
+            text=side['name'], customdata=side[metric].map(lambda v: fmt_num(v, digits)),
             hovertemplate='<b>%{text}</b><br>%{customdata} ' + METRICS[metric][1] + '<extra></extra>',
         ))
     return _layout(fig, ytitle=_metric_title(metric), height=380, legend=False)
