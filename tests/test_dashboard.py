@@ -139,3 +139,23 @@ def test_dynamics_index_scale_and_old_vs_new_toggle():
     at = open_page('app_pages/old_vs_new.py')
     at.toggle(key='no_premium').set_value(True).run()
     assert not at.exception
+
+
+def test_stale_module_in_memory_is_refreshed():
+    """
+    Воспроизводит сбой Streamlit Cloud после push: страницы уже новые, а модуль
+    в памяти — старый, без нужного имени. Приложение должно само перезагрузить
+    модуль, а не упасть с ImportError
+    """
+    import sys
+
+    at = AppTest.from_file(APP, default_timeout=30).run()
+    assert not at.exception
+
+    stale = sys.modules['dashboard.data']
+    del stale.plural_ru
+    stale._source_mtime = 0
+
+    at.run()
+    assert not at.exception, at.exception
+    assert hasattr(sys.modules['dashboard.data'], 'plural_ru')
