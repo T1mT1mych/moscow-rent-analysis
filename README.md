@@ -61,11 +61,16 @@ streamlit run streamlit_app.py
 
 ## Как запустить анализ
 
+Весь проект — от сырых CSV до витрины дашборда и графиков README — пересобирается одной командой (около 40 секунд):
+
 ```bash
 pip install -r requirements.txt
+python -m src.pipeline
 ```
 
-Затем выполнить шаги **строго по порядку**:
+Ноутбуки выполняются целиком и сохраняются вместе с результатами. Если шаг падает, конвейер останавливается и подсказывает, как продолжить с него: `python -m src.pipeline --from N`. Список шагов: `python -m src.pipeline --list`.
+
+Те же шаги вручную, **строго по порядку**:
 
 1. `notebooks/data_clean_rentals.ipynb`
 2. `notebooks/data_clean_secondary_market.ipynb`
