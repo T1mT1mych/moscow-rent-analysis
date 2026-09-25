@@ -3,14 +3,15 @@
 
 Правила оформления общие для всех графиков:
 - старая и Новая Москва всегда одного и того же цвета (PART_COLORS), на любой странице
-- величина на карте — одна синяя шкала от светлого к тёмному
+- величина на карте — классы с примерно равным числом районов, от бирюзового к тёмно-синему
 - одна ось Y на график: разные единицы измерения — разные графики, а не вторая ось
 - у каждой точки подсказка при наведении; таблица с теми же числами — на странице рядом
 """
 
 import plotly.graph_objects as go
 
-from dashboard.data import METRICS, NEUTRAL, PART_COLORS, PARTS, SEQUENTIAL, fmt_num
+from dashboard.data import (CLASS_COLORS, METRICS, NEUTRAL, PART_COLORS, PARTS, assign_classes,
+                            class_labels, fmt_num)
 
 MOSCOW_CENTER = {'lat': 55.60, 'lon': 37.40}
 
@@ -40,34 +41,47 @@ def _digits(metric):
     return 1 if metric in ('payback_years', 'newbuild_premium_pct', 'to_center_km') else 0
 
 
-def district_map(districts, metric):
-    """Районы точками на карте, цвет — значение метрики; районы без значения серые"""
-    digits = _digits(metric)
-    has_value = districts[metric].notna()
-    fig = go.Figure()
+def district_map(districts, metric, edges):
+    """
+    Районы точками на карте, цвет — класс значения метрики
 
-    for subset, is_empty in [(districts[~has_value], True), (districts[has_value], False)]:
+    edges — границы классов, посчитанные по всем районам (class_edges), а не по
+    отфильтрованным: при смене фильтра район сохраняет свой цвет. Точное значение —
+    в подсказке; щелчок по классу в легенде прячет или показывает его точки
+    """
+    digits = _digits(metric)
+    classes = assign_classes(districts[metric], edges)
+    labels = class_labels(edges)
+    step = (len(CLASS_COLORS) - 1) / max(len(labels) - 1, 1)
+    colors = [CLASS_COLORS[round(i * step)] for i in range(len(labels))]
+
+    groups = [(districts[classes.isna()], NEUTRAL, 'нет новостроек')]
+    groups += [(districts[classes == i], colors[i], labels[i]) for i in range(len(labels))]
+
+    fig = go.Figure()
+    # белая подложка под каждой точкой — чтобы точки читались на пёстрой карте
+    fig.add_trace(go.Scattermap(
+        lat=districts['lat'], lon=districts['lon'], mode='markers',
+        marker=dict(size=17, color='white'), hoverinfo='skip', showlegend=False,
+    ))
+    for subset, color, name in groups:
         if subset.empty:
             continue
         values = subset[metric].map(lambda v: fmt_num(v, digits))
-        customdata = list(zip(subset['okrug_ru'], subset['moscow_part'], values))
-        marker = dict(size=13, opacity=0.9)
-        if is_empty:
-            marker['color'] = NEUTRAL
-        else:
-            marker.update(color=subset[metric], colorscale=SEQUENTIAL,
-                          colorbar=dict(title=_metric_title(metric), thickness=12, tickformat=',~f'))
         fig.add_trace(go.Scattermap(
-            lat=subset['lat'], lon=subset['lon'], mode='markers', marker=marker,
-            text=subset['name'], customdata=customdata,
-            name='нет данных' if is_empty else METRICS[metric][0],
+            lat=subset['lat'], lon=subset['lon'], mode='markers',
+            marker=dict(size=12, color=color), name=name,
+            text=subset['name'], customdata=list(zip(subset['okrug_ru'], subset['moscow_part'], values)),
             hovertemplate='<b>%{text}</b> · %{customdata[0]}<br>%{customdata[1]}<br>'
                           + METRICS[metric][0] + ': %{customdata[2]} ' + METRICS[metric][1]
                           + '<extra></extra>',
         ))
 
     fig.update_layout(map=dict(style='open-street-map', center=MOSCOW_CENTER, zoom=7.9))
-    return _layout(fig, height=560, legend=not has_value.all())
+    _layout(fig, height=560)
+    fig.update_layout(legend=dict(orientation='v', yanchor='top', y=1, xanchor='left', x=1.01,
+                                  title=dict(text=_metric_title(metric)), itemsizing='constant'))
+    return fig
 
 
 def district_ranking(districts, metric, top_n, highest=True):

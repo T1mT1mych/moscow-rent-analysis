@@ -13,7 +13,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from dashboard.data import (
-    MART_DIR, NEW, OLD, fmt_num, plural_ru, styled_table, meta_dict, part_monthly_median,
+    MART_DIR, NEW, OLD, assign_classes, class_edges, class_labels, fmt_num, plural_ru, styled_table, meta_dict, part_monthly_median,
     part_summary, prepare_district_month, prepare_districts, to_index,
 )
 
@@ -38,6 +38,27 @@ def test_styled_table_explains_missing_values():
     assert '12,3' in html and '123 456' in html
     assert html.count('нет новостроек') == 2
     assert 'None' not in html and 'nan' not in html
+
+
+def test_map_classes_are_balanced_and_round(districts):
+    """На карте в каждом классе примерно поровну районов, границы — круглые числа"""
+    edges = class_edges(districts['avg_price_sqm_all'])
+    assert edges == sorted(set(edges)) and len(edges) == 5
+    assert all(e % 10_000 == 0 for e in edges)
+    counts = assign_classes(districts['avg_price_sqm_all'], edges).value_counts()
+    assert counts.min() >= 0.5 * len(districts) / 6
+
+
+def test_map_classes_keep_missing_values_empty(districts):
+    edges = class_edges(districts['newbuild_premium_pct'])
+    classes = assign_classes(districts['newbuild_premium_pct'], edges)
+    assert classes.isna().sum() == districts['newbuild_premium_pct'].isna().sum()
+
+
+def test_class_labels():
+    assert class_labels([120_000, 150_000]) == ['до 120 тыс.', '120–150 тыс.', 'от 150 тыс.']
+    assert class_labels([870, 1000]) == ['до 870', '870–1 000', 'от 1 000']
+    assert class_labels([15.3, 17]) == ['до 15,3', '15,3–17', 'от 17']
 
 
 def test_plural_ru():

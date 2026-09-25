@@ -20,7 +20,11 @@ PARTS = [OLD, NEW]
 # дальтонизма и контрастны на светлом фоне; тема дашборда закреплена светлой
 PART_COLORS = {OLD: '#2a78d6', NEW: '#eb6834'}
 NEUTRAL = '#898781'
-SEQUENTIAL = ['#86b6ef', '#5598e7', '#2a78d6', '#1c5cab', '#104281', '#0d366b']
+# классы карты: соседние оттенки от бирюзового к тёмно-синему. Один оттенок на шесть
+# ступеней на пёстрой подложке почти не различался; переход через соседние оттенки
+# при подписанной легенде — допустимое исключение. Проверено валидатором палитры:
+# яркость растёт монотонно, соседние ступени различимы, светлая заметна на белом
+CLASS_COLORS = ['#52bfae', '#2fa2c1', '#1f7fbf', '#225ea8', '#253494', '#0b1d5a']
 
 # метрики районов: колонка -> (название, единица, пояснение для читателя)
 METRICS = {
@@ -73,6 +77,58 @@ def fmt_num(value, digits=0):
     if pd.isna(value):
         return '—'
     return f'{value:,.{digits}f}'.replace(',', ' ').replace('.', ',')
+
+
+def _round_edge(value):
+    """Граница класса «круглым» числом: 131 245 -> 130 000, 16.43 -> 16.4"""
+    if abs(value) >= 100:
+        magnitude = 10 ** (len(str(int(abs(value)))) - 2)
+        return round(value / magnitude) * magnitude
+    return round(value, 1)
+
+
+def class_edges(values, n_classes=6):
+    """
+    Внутренние границы классов для карты: в каждом классе примерно поровну районов
+
+    Границы по квантилям, а не равными шагами: цены распределены с длинным хвостом
+    (десяток дорогих районов центра), и при равных шагах почти весь город попал бы
+    в один-два нижних класса. Границы округляются до круглых чисел; совпавшие после
+    округления схлопываются, так что классов может выйти чуть меньше
+    """
+    quantiles = values.dropna().quantile([i / n_classes for i in range(1, n_classes)])
+    edges = []
+    for q in quantiles:
+        edge = _round_edge(q)
+        if not edges or edge > edges[-1]:
+            edges.append(edge)
+    return edges
+
+
+def class_labels(edges):
+    """
+    Подписи классов для легенды: «до 120 тыс.», «120–150 тыс.», …, «от 270 тыс.»
+
+    «тыс.» — только когда все границы от 10 000: у аренды (сотни рублей) подписи
+    вида «870 – 1 тыс.» читались бы хуже полных чисел
+    """
+    in_thousands = min(edges) >= 10_000
+    scale, suffix = (1000, ' тыс.') if in_thousands else (1, '')
+
+    def num(value):
+        value = value / scale
+        return fmt_num(value, 0 if float(value).is_integer() else 1)
+
+    labels = [f'до {num(edges[0])}{suffix}']
+    labels += [f'{num(a)}–{num(b)}{suffix}' for a, b in zip(edges, edges[1:])]
+    labels.append(f'от {num(edges[-1])}{suffix}')
+    return labels
+
+
+def assign_classes(values, edges):
+    """Номер класса для каждого значения (0 — самый низкий), NaN остаётся NaN"""
+    return pd.cut(values, [-float('inf')] + list(edges) + [float('inf')],
+                  labels=False, right=False)
 
 
 def styled_table(df, digits, na_text):

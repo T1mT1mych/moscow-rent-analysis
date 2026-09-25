@@ -1,7 +1,7 @@
 import streamlit as st
 
 from dashboard.charts import district_map, district_ranking
-from dashboard.data import METRICS, PARTS, plural_ru, styled_table
+from dashboard.data import METRICS, PARTS, class_edges, plural_ru, styled_table
 from dashboard.loaders import load_districts
 
 districts = load_districts()
@@ -32,7 +32,11 @@ if missing:
     st.caption(f'Серые точки — {missing} {plural_ru(missing, "район", "района", "районов")}, где показатель '
                'не считается: там нет ни одного объявления новостройки.')
 
-st.plotly_chart(district_map(view, metric), config={'scrollZoom': True})
+st.plotly_chart(district_map(view, metric, class_edges(districts[metric])), config={'scrollZoom': True})
+st.caption('Цвет — один из шести классов, в каждом примерно поровну районов Москвы: так видны различия '
+           'и среди обычных районов, а не только между центром и окраиной. Границы классов общие для '
+           'всего города и не меняются от фильтров. Точное значение — при наведении на точку; щелчок '
+           'по классу в легенде скрывает или показывает его.')
 
 st.subheader('Рейтинг районов')
 with st.container(horizontal=True, vertical_alignment='bottom'):
