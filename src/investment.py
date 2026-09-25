@@ -1,5 +1,6 @@
 """Инвестиционная аналитика: окупаемость, наценка новостроек, рейтинг районов"""
 
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import ticker
@@ -108,3 +109,71 @@ def composite_ranking(data, columns_higher_better, weights=None):
     result = data.copy()
     result['Балл'] = (score * 100).round(1)
     return result.sort_values('Балл', ascending=False)
+
+
+def fit_price_gradient(reference, price_col, value_col):
+    """
+    Линейная зависимость показателя от логарифма цены: value = a + b * ln(price)
+
+    Логарифм — потому что цены по районам различаются в разы, и одинаковый
+    относительный шаг цены должен давать одинаковый сдвиг показателя.
+    Возвращает функцию, которая по цене считает ожидаемое значение
+    """
+    b, a = np.polyfit(np.log(reference[price_col]), reference[value_col], 1)
+    return lambda price: a + b * np.log(price)
+
+
+def gradient_check(districts, price_col, value_col, group_col, reference_value):
+    """
+    Лежит ли другая группа районов на продолжении зависимости референсной группы
+
+    Зависимость подбирается только по референсной группе и продлевается на
+    остальные районы. Если средний остаток около нуля, различие между
+    группами целиком объясняется уровнем цен, а не принадлежностью к группе
+    """
+    reference = districts[districts[group_col] == reference_value]
+    predict = fit_price_gradient(reference, price_col, value_col)
+
+    result = districts[[group_col, price_col, value_col]].copy()
+    result['Ожидалось по цене'] = predict(result[price_col]).round(1)
+    result['Остаток'] = (result[value_col] - result['Ожидалось по цене']).round(1)
+
+    return result.groupby(group_col).agg(
+        n=(value_col, 'size'),
+        median_price=(price_col, 'median'),
+        median_actual=(value_col, 'median'),
+        median_expected=('Ожидалось по цене', 'median'),
+        mean_residual=('Остаток', 'mean'),
+    ).round(1)
+
+
+def plot_price_gradient(districts, price_col, value_col, group_col, reference_value,
+                        title, ylabel):
+    """
+    Районы на плоскости «цена × показатель» с линией зависимости,
+    подобранной только по референсной группе и продлённой на весь диапазон цен
+    """
+    reference = districts[districts[group_col] == reference_value]
+    predict = fit_price_gradient(reference, price_col, value_col)
+
+    plt.figure(figsize=(11, 6))
+    for value, group in districts.groupby(group_col):
+        plt.scatter(group[price_col], group[value_col], s=40, alpha=0.7, label=str(value))
+
+    grid = np.geomspace(districts[price_col].min(), districts[price_col].max(), 100)
+    plt.plot(grid, predict(grid), color='black', linewidth=1.5,
+             label=f'зависимость по группе «{reference_value}»')
+    ref_low = reference[price_col].min()
+    plt.axvspan(grid[0], ref_low, color='grey', alpha=0.1,
+                label='диапазон цен вне референсной группы')
+
+    plt.xscale('log')
+    plt.gca().xaxis.set_major_formatter(_THOUSANDS)
+    plt.gca().xaxis.set_minor_formatter(ticker.NullFormatter())
+    plt.title(title)
+    plt.xlabel('Средняя цена вторички без премиума, руб/м² (логарифмическая шкала)')
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.grid(alpha=0.3)
+    plt.tight_layout()
+    plt.show()
