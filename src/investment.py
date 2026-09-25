@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
-_THOUSANDS = ticker.FuncFormatter(lambda x, p: f'{int(x):,}'.replace(',', ' '))
+from src.plot_style import THOUSANDS as _THOUSANDS, INK, MUTED, PART_COLORS, PRIMARY
 
 
 def payback_by_segment(df_secondary, df_rentals, group_cols,
@@ -51,10 +51,10 @@ def plot_payback_bars(table, index_labels, title):
 
     plt.figure(figsize=(10, max(4, len(data) * 0.45)))
     plt.barh([index_labels.get(i, str(i)) for i in data.index],
-             data['Окупаемость, лет'], color='steelblue')
+             data['Окупаемость, лет'], color=PRIMARY)
     plt.title(title)
     plt.xlabel('Окупаемость, лет')
-    plt.grid(axis='x', alpha=0.3)
+    plt.grid(axis='x')
     plt.tight_layout()
     plt.show()
 
@@ -69,10 +69,10 @@ def plot_yield_growth_quadrants(data, yield_col, growth_col, label_col, title, t
     growth_median = data[growth_col].median()
 
     plt.figure(figsize=(11, 8))
-    plt.scatter(data[yield_col], data[growth_col], s=45, alpha=0.65, color='steelblue')
+    plt.scatter(data[yield_col], data[growth_col], s=45, alpha=0.65, color=PRIMARY)
 
-    plt.axvline(yield_median, color='grey', linestyle='--', linewidth=1)
-    plt.axhline(growth_median, color='grey', linestyle='--', linewidth=1)
+    plt.axvline(yield_median, color=MUTED, linestyle='--', linewidth=1)
+    plt.axhline(growth_median, color=MUTED, linestyle='--', linewidth=1)
 
     # подписываем только самые интересные точки, иначе график превратится в кашу
     best = data.assign(_score=data[yield_col].rank() + data[growth_col].rank())
@@ -84,7 +84,7 @@ def plot_yield_growth_quadrants(data, yield_col, growth_col, label_col, title, t
     plt.title(title)
     plt.xlabel('Доходность аренды, % годовых')
     plt.ylabel('Рост цены за 24 месяца, %')
-    plt.grid(alpha=0.3)
+    plt.grid(True)
     plt.tight_layout()
     plt.show()
 
@@ -158,22 +158,25 @@ def plot_price_gradient(districts, price_col, value_col, group_col, reference_va
 
     plt.figure(figsize=(11, 6))
     for value, group in districts.groupby(group_col):
-        plt.scatter(group[price_col], group[value_col], s=40, alpha=0.7, label=str(value))
+        plt.scatter(group[price_col], group[value_col], s=40, alpha=0.8, label=str(value),
+                    color=PART_COLORS.get(value), edgecolors='white', linewidths=0.6)
 
     grid = np.geomspace(districts[price_col].min(), districts[price_col].max(), 100)
-    plt.plot(grid, predict(grid), color='black', linewidth=1.5,
+    plt.plot(grid, predict(grid), color=INK, linewidth=1.5,
              label=f'зависимость по группе «{reference_value}»')
     ref_low = reference[price_col].min()
-    plt.axvspan(grid[0], ref_low, color='grey', alpha=0.1,
+    plt.axvspan(grid[0], ref_low, color=MUTED, alpha=0.1,
                 label='диапазон цен вне референсной группы')
 
     plt.xscale('log')
     plt.gca().xaxis.set_major_formatter(_THOUSANDS)
     plt.gca().xaxis.set_minor_formatter(ticker.NullFormatter())
+    nice = [25_000, 50_000, 75_000, 100_000, 150_000, 200_000, 300_000, 400_000, 600_000]
+    plt.xticks([t for t in nice if grid[0] <= t <= grid[-1]])
     plt.title(title)
     plt.xlabel('Средняя цена вторички без премиума, руб/м² (логарифмическая шкала)')
     plt.ylabel(ylabel)
     plt.legend()
-    plt.grid(alpha=0.3)
+    plt.grid(True)
     plt.tight_layout()
     plt.show()

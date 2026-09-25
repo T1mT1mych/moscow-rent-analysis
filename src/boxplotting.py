@@ -3,6 +3,8 @@
 from matplotlib import ticker
 import matplotlib.pyplot as plt
 
+from src.plot_style import THOUSANDS
+
 
 def plot_price_boxplot(data, title, width, height, delenia, xlabel='Цена за м²'):
     """
@@ -20,14 +22,13 @@ def plot_price_boxplot(data, title, width, height, delenia, xlabel='Цена з�
 
     # Формат числовых значений оси (разделитель тысяч — пробел)
     plt.gca().xaxis.set_major_formatter(
-        ticker.FuncFormatter(lambda x, p: f'{int(x):,}'.replace(',', ' '))
+        THOUSANDS
     )
 
     # Количество делений на оси
     plt.gca().xaxis.set_major_locator(ticker.MaxNLocator(nbins=delenia))
 
     # Сетка
-    plt.grid(axis='x', alpha=0.3)
-    plt.style.use('default')
+    plt.grid(axis='x')
     plt.tight_layout()
     plt.show()

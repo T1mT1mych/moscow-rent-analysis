@@ -2,7 +2,8 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import ticker
+
+from src.plot_style import THOUSANDS, ACCENT, NEW_MOSCOW, OLD_MOSCOW, PRIMARY
 
 NEW_MOSCOW_OKRUGS = ['TAO', 'NAO', 'ZelAO']
 
@@ -165,23 +166,23 @@ def plot_threshold_stability(table, title):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(11, 8), sharex=True)
 
     ax1.plot(table.index, table['Порог периода'], marker='o', linewidth=2,
-             color='steelblue', label='Порог, посчитанный внутри периода')
+             color=PRIMARY, label='Порог, посчитанный внутри периода')
     if global_threshold:
-        ax1.axhline(global_threshold, color='crimson', linestyle='--', linewidth=1.5,
+        ax1.axhline(global_threshold, color=ACCENT, linestyle='--', linewidth=1.5,
                     label=f'Общий порог по всем данным ({global_threshold:,})'.replace(',', ' '))
     ax1.set_ylabel('Порог премиум-сегмента')
-    ax1.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f'{int(x):,}'.replace(',', ' ')))
+    ax1.yaxis.set_major_formatter(THOUSANDS)
     ax1.set_title(title)
-    ax1.grid(alpha=0.3)
+    ax1.grid(True)
     ax1.legend()
 
     ax2.plot(table.index, table['Премиум по общему порогу, %'], marker='o', linewidth=2,
-             color='crimson', label='Доля премиума по общему порогу')
+             color=ACCENT, label='Доля премиума по общему порогу')
     ax2.plot(table.index, table['Премиум по порогу периода, %'], marker='s', linewidth=2,
-             color='steelblue', label='Доля премиума по порогу периода')
+             color=PRIMARY, label='Доля премиума по порогу периода')
     ax2.set_ylabel('Доля премиум-сегмента, %')
     ax2.set_xlabel('Период')
-    ax2.grid(alpha=0.3)
+    ax2.grid(True)
     ax2.legend()
 
     plt.tight_layout()
@@ -222,21 +223,25 @@ def plot_old_vs_new_moscow_boxplot(df, price_col, segment_label):
     new_moscow = df[df['is_new_moscow']][price_col]
 
     plt.figure(figsize=(10, 5))
-    plt.boxplot([old_moscow, new_moscow], orientation='horizontal', tick_labels=['Старая Москва', 'Новая Москва'])
+    boxes = plt.boxplot([old_moscow, new_moscow], orientation='horizontal', patch_artist=True,
+                        tick_labels=['Старая Москва', 'Новая Москва'])
+    for box, color in zip(boxes['boxes'], [OLD_MOSCOW, NEW_MOSCOW]):
+        box.set(facecolor=color, alpha=0.35, edgecolor=color)
     plt.title(f'Цена за м² ({segment_label}): старая vs Новая Москва')
     plt.xlabel('Цена за м²')
-    plt.gca().xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f'{int(x):,}'.replace(',', ' ')))
-    plt.grid(axis='x', alpha=0.3)
+    plt.gca().xaxis.set_major_formatter(THOUSANDS)
+    plt.grid(axis='x')
     plt.tight_layout()
     plt.show()
 
 
 def plot_new_moscow_share_pie(df):
     """Круговая диаграмма доли объявлений: старая vs Новая Москва"""
-    counts = df['is_new_moscow'].value_counts()
+    # порядок задаём явно: value_counts сортирует по частоте, и подписи могли бы перепутаться
+    counts = df['is_new_moscow'].value_counts().reindex([False, True], fill_value=0)
     labels = ['Старая Москва', 'Новая Москва']
 
     plt.figure(figsize=(4, 4))
-    plt.pie(counts, labels=labels, autopct='%1.1f%%', colors=['steelblue', 'lightcoral'])
+    plt.pie(counts, labels=labels, autopct='%1.1f%%', colors=[OLD_MOSCOW, NEW_MOSCOW])
     plt.title('Доля объявлений: старая vs Новая Москва')
     plt.show()

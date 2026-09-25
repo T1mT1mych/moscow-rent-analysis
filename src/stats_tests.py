@@ -6,6 +6,8 @@ from scipy import stats
 
 import matplotlib.pyplot as plt
 
+from src.plot_style import ACCENT, INK_SECONDARY
+
 
 def _effect_size_label(r):
     """Словесная оценка величины эффекта по общепринятым порогам"""
@@ -100,11 +102,11 @@ def plot_normalized_distributions(segments, title, bins=60, clip=3.0):
         normalized = normalized[normalized <= clip]
         plt.hist(normalized, bins=bins, alpha=0.45, density=True, label=label)
 
-    plt.axvline(1.0, color='black', linewidth=1, linestyle='--', label='медиана сегмента')
+    plt.axvline(1.0, color=INK_SECONDARY, linewidth=1, linestyle='--', label='медиана сегмента')
     plt.title(title)
     plt.xlabel('Цена относительно медианы своего сегмента')
     plt.ylabel('Плотность')
-    plt.grid(alpha=0.3)
+    plt.grid(True)
     plt.legend()
     plt.tight_layout()
     plt.show()
@@ -120,9 +122,9 @@ def plot_normalized_boxplots(segments, title, clip=3.0):
 
     plt.figure(figsize=(10, 5))
     plt.boxplot(data, orientation='horizontal', tick_labels=labels)
-    plt.axvline(1.0, color='crimson', linewidth=1, linestyle='--')
+    plt.axvline(1.0, color=ACCENT, linewidth=1, linestyle='--')
     plt.title(title)
     plt.xlabel('Цена относительно медианы своего сегмента')
-    plt.grid(axis='x', alpha=0.3)
+    plt.grid(axis='x')
     plt.tight_layout()
     plt.show()

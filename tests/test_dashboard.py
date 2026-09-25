@@ -43,6 +43,13 @@ def test_premium_in_rubles_is_newbuild_minus_secondary(districts):
     assert row['newbuild_premium_rub'] == row['avg_newbuild_sqm_no_premium'] - row['avg_price_sqm_no_premium']
 
 
+def test_dashboard_colors_match_notebook_style():
+    """Старая и Новая Москва одного цвета и в дашборде, и в графиках ноутбуков"""
+    from dashboard.data import PART_COLORS
+    from src.plot_style import PART_COLORS as NOTEBOOK_PART_COLORS
+    assert PART_COLORS == NOTEBOOK_PART_COLORS
+
+
 def test_every_okrug_has_russian_name(districts):
     assert not districts['okrug_ru'].str.match(r'^[A-Za-z]').any()
 

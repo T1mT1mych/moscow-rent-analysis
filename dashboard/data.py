@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from dashboard.district_names import DISTRICT_NAMES_RU
+from src.names import DISTRICT_NAMES_RU, OKRUG_NAMES_RU
 
 MART_DIR = Path(__file__).resolve().parents[1] / 'data' / 'mart'
 
@@ -21,12 +21,6 @@ PARTS = [OLD, NEW]
 PART_COLORS = {OLD: '#2a78d6', NEW: '#eb6834'}
 NEUTRAL = '#898781'
 SEQUENTIAL = ['#86b6ef', '#5598e7', '#2a78d6', '#1c5cab', '#104281', '#0d366b']
-
-OKRUG_NAMES = {
-    'CAO': 'ЦАО', 'SAO': 'САО', 'SVAO': 'СВАО', 'VAO': 'ВАО', 'YuVAO': 'ЮВАО',
-    'YuAO': 'ЮАО', 'YuZAO': 'ЮЗАО', 'ZAO': 'ЗАО', 'SZAO': 'СЗАО',
-    'ZelAO': 'ЗелАО', 'NAO': 'НАО', 'TAO': 'ТАО',
-}
 
 # метрики районов: колонка -> (название, единица, пояснение для читателя)
 METRICS = {
@@ -91,7 +85,7 @@ def plural_ru(n, one, few, many):
 
 
 def okrug_label(code):
-    return OKRUG_NAMES.get(code, code)
+    return OKRUG_NAMES_RU.get(code, code)
 
 
 def prepare_districts(df):

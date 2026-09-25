@@ -9,6 +9,7 @@ from sklearn.inspection import permutation_importance
 
 import matplotlib.pyplot as plt
 
+from src.plot_style import PRIMARY
 from src.regression import build_features
 
 
@@ -92,9 +93,9 @@ def plot_importance(table, value_col, title):
     """Горизонтальная диаграмма важности признаков"""
     data = table.iloc[::-1]  # переворачиваем, чтобы самый важный оказался сверху
     plt.figure(figsize=(10, 6))
-    plt.barh(data['Признак'], data[value_col])
+    plt.barh(data['Признак'], data[value_col], color=PRIMARY)
     plt.title(title)
     plt.xlabel(value_col)
-    plt.grid(axis='x', alpha=0.3)
+    plt.grid(axis='x')
     plt.tight_layout()
     plt.show()

@@ -2,7 +2,8 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import ticker
+
+from src.plot_style import THOUSANDS, ACCENT, INK_SECONDARY
 
 # Русские подписи для категориальных значений (в исходных данных — на английском)
 BUILDING_TYPE_RU = {
@@ -68,9 +69,9 @@ def price_by_building_year(df, price_col, segment_label,
     plt.xlabel('Год постройки')
     plt.ylabel('Цена за м²')
     plt.gca().yaxis.set_major_formatter(
-        ticker.FuncFormatter(lambda x, p: f'{int(x):,}'.replace(',', ' '))
+        THOUSANDS
     )
-    plt.grid(alpha=0.3)
+    plt.grid(True)
     plt.tight_layout()
     plt.show()
 
@@ -151,8 +152,8 @@ def plot_category_effect(table, title):
     ax.set_title(title)
     ax.set_xlabel('Разница к базе, %')
     ax.set_ylabel(table.index.name or '')
-    ax.axvline(0, color='black', linewidth=0.8)
-    ax.grid(axis='x', alpha=0.3)
+    ax.axvline(0, color=INK_SECONDARY, linewidth=0.8)
+    ax.grid(axis='x')
     plt.tight_layout()
     plt.show()
 
@@ -204,14 +205,14 @@ def plot_price_vs_factor(df, price_col, factor_col, title, xlabel,
 
     plt.figure(figsize=(11, 5))
     plt.scatter(points[factor_col], points[price_col], s=6, alpha=0.15, label='объявления')
-    plt.plot(trend['x'], trend['y'], color='crimson', linewidth=2, label='медиана по интервалам')
+    plt.plot(trend['x'], trend['y'], color=ACCENT, linewidth=2, label='медиана по интервалам')
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel('Цена за м²')
     plt.gca().yaxis.set_major_formatter(
-        ticker.FuncFormatter(lambda x, p: f'{int(x):,}'.replace(',', ' '))
+        THOUSANDS
     )
-    plt.grid(alpha=0.3)
+    plt.grid(True)
     plt.legend()
     plt.tight_layout()
     plt.show()
@@ -226,9 +227,9 @@ def plot_price_by_class_okrug(pivot_table, title):
     ax.set_xlabel('Округ')
     ax.set_ylabel('Медианная цена за м²')
     ax.yaxis.set_major_formatter(
-        ticker.FuncFormatter(lambda x, p: f'{int(x):,}'.replace(',', ' '))
+        THOUSANDS
     )
-    ax.grid(axis='y', alpha=0.3)
+    ax.grid(axis='y')
     ax.legend(title='Класс')
     plt.tight_layout()
     plt.show()

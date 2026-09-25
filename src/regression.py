@@ -9,6 +9,8 @@ from sklearn.metrics import r2_score, mean_absolute_error, root_mean_squared_err
 import matplotlib.pyplot as plt
 from matplotlib import ticker
 
+from src.plot_style import ACCENT
+
 
 def build_features(df, numeric_cols, categorical_cols):
     """
@@ -74,7 +76,7 @@ def plot_predictions(y_test, y_pred, title):
     plt.scatter(y_test, y_pred, s=6, alpha=0.2)
 
     limits = [min(y_test.min(), y_pred.min()), max(y_test.max(), y_pred.max())]
-    plt.plot(limits, limits, color='crimson', linewidth=1.5, label='идеальный прогноз')
+    plt.plot(limits, limits, color=ACCENT, linewidth=1.5, label='идеальный прогноз')
 
     plt.title(title)
     plt.xlabel('Фактическая цена за м²')
@@ -82,7 +84,7 @@ def plot_predictions(y_test, y_pred, title):
     formatter = ticker.FuncFormatter(lambda x, p: f'{int(x):,}'.replace(',', ' '))
     plt.gca().xaxis.set_major_formatter(formatter)
     plt.gca().yaxis.set_major_formatter(formatter)
-    plt.grid(alpha=0.3)
+    plt.grid(True)
     plt.legend()
     plt.tight_layout()
     plt.show()
