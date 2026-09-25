@@ -81,6 +81,15 @@ def fmt_num(value, digits=0):
     return f'{value:,.{digits}f}'.replace(',', ' ').replace('.', ',')
 
 
+def plural_ru(n, one, few, many):
+    """Согласование существительного с числом: 1 район, 22 района, 107 районов"""
+    if n % 10 == 1 and n % 100 != 11:
+        return one
+    if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
+        return few
+    return many
+
+
 def okrug_label(code):
     return OKRUG_NAMES.get(code, code)
 

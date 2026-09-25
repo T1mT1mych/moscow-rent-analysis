@@ -1,7 +1,7 @@
 import streamlit as st
 
 from dashboard.charts import district_map, district_ranking
-from dashboard.data import METRICS, PARTS
+from dashboard.data import METRICS, PARTS, plural_ru
 from dashboard.loaders import load_districts
 
 districts = load_districts()
@@ -29,7 +29,8 @@ if view.empty:
 
 missing = view[metric].isna().sum()
 if missing:
-    st.caption(f'Серые точки — {missing} районов, где показатель не считается: в них нет ни одного объявления новостройки.')
+    st.caption(f'Серые точки — {missing} {plural_ru(missing, "район", "района", "районов")}, где показатель '
+               'не считается: там нет ни одного объявления новостройки.')
 
 st.plotly_chart(district_map(view, metric), config={'scrollZoom': True})
 

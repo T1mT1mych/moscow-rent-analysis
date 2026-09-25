@@ -13,7 +13,7 @@ import pytest
 from streamlit.testing.v1 import AppTest
 
 from dashboard.data import (
-    MART_DIR, NEW, OLD, fmt_num, meta_dict, part_monthly_median,
+    MART_DIR, NEW, OLD, fmt_num, plural_ru, meta_dict, part_monthly_median,
     part_summary, prepare_district_month, prepare_districts, to_index,
 )
 
@@ -30,6 +30,12 @@ def districts():
 def test_fmt_num_uses_russian_separators():
     assert fmt_num(1234567.891, 1) == '1 234 567,9'
     assert fmt_num(float('nan')) == '—'
+
+
+def test_plural_ru():
+    forms = ('район', 'района', 'районов')
+    assert [plural_ru(n, *forms) for n in (1, 2, 5, 11, 12, 21, 22, 107)] == [
+        'район', 'района', 'районов', 'районов', 'районов', 'район', 'района', 'районов']
 
 
 def test_premium_in_rubles_is_newbuild_minus_secondary(districts):

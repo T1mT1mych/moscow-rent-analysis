@@ -1,6 +1,6 @@
 import streamlit as st
 
-from dashboard.data import METRICS, NEW, OLD, PARTS, fmt_num, part_summary
+from dashboard.data import METRICS, NEW, OLD, PARTS, fmt_num, part_summary, plural_ru
 from dashboard.loaders import load_districts, load_meta, load_segment_medians
 
 districts = load_districts()
@@ -23,7 +23,8 @@ columns = st.columns(2, border=True)
 for column, part in zip(columns, PARTS):
     s = summary[part]
     with column:
-        st.markdown(f'**{part}** · {s["districts"]} районов')
+        n = s['districts']
+        st.markdown(f'**{part}** · {n} {plural_ru(n, "район", "района", "районов")}')
         with st.container(horizontal=True):
             st.metric('Вторичка, медиана', f'{fmt_num(s["price_median"])} ₽/м²')
             st.metric('Новостройки, медиана', f'{fmt_num(s["newbuild_median"])} ₽/м²')
@@ -70,7 +71,7 @@ st.divider()
 st.caption(
     'Источник: [Moscow Real Estate: Sales & Rentals (2020–2026)]'
     '(https://www.kaggle.com/datasets/sergionefedov/moscow-real-estate-sales-and-rentals-20202026), '
-    f'Kaggle, лицензия Apache 2.0. Витрина данных собрана {meta.get("built_at", "—")[:10]}. '
+    f'Kaggle, лицензия Apache 2.0. Витрина данных собрана {".".join(reversed(meta.get("built_at", "—")[:10].split("-")))}. '
     'Код и полный анализ: [github.com/T1mT1mych/moscow-rent-analysis]'
     '(https://github.com/T1mT1mych/moscow-rent-analysis).'
 )
